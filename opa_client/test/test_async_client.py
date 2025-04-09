@@ -1,20 +1,19 @@
-import asyncio
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from opa_client import create_opa_client
+from opa_client.opa_async import AsyncOpaClient
 from opa_client.errors import (
 	ConnectionsError,
-	DeleteDataError,
 	DeletePolicyError,
-	PolicyNotFoundError,
 	RegoParseError,
 )
 
 
 class TestAsyncOpaClient(unittest.IsolatedAsyncioTestCase):
 	async def asyncSetUp(self):
-		self.client = create_opa_client(
+		# Ignore the type since we know this is AsyncOpaClient
+		self.client: AsyncOpaClient = create_opa_client(  # type: ignore
 			async_mode=True, host="localhost", port=8181
 		)
 		await self.client._init_session()
@@ -110,6 +109,36 @@ class TestAsyncOpaClient(unittest.IsolatedAsyncioTestCase):
 		with self.assertRaises(DeletePolicyError):
 			await self.client.delete_policy("nonexistent_policy")
 		mock_delete.assert_called_once()
+
+	async def test_check_permission(self):
+		# Define a sample policy
+		policy_name = "authz"
+		policy_content = """
+        package authz
+
+        default allow = false
+
+        allow if {
+            input.user.role == "admin"
+        }
+        """
+
+		# Create the policy
+		await self.client.update_policy_from_string(
+			policy_content, policy_name
+		)
+
+		# Define sample input data
+		input_data = {"user": {"name": "alice", "role": "admin"}}
+
+		# Check permission
+		result = await self.client.check_permission(
+			input_data, policy_name, "allow"
+		)
+		self.assertIn("result", result)
+		self.assertTrue(result["result"])
+		# Clean up
+		await self.client.delete_policy(policy_name)
 
 	# Add more test methods to cover other functionalities
 

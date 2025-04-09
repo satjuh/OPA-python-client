@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 import ssl
 from typing import Dict, Optional, Union
@@ -440,7 +439,7 @@ class AsyncOpaClient:
 				f"Rule '{rule_name}' not found in policy '{policy_name}'"
 			)
 
-		url = f"{self.root_url}/data/{package_path}/{rule_name}"
+		url = f"{self.root_url}/{package_path}/{rule_name}"
 		if query_params:
 			url = f"{url}?{urlencode(query_params)}"
 

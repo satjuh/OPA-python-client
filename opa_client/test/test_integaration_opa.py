@@ -37,7 +37,7 @@ class TestIntegrationOpaClient(unittest.TestCase):
 
         default allow = false
 
-        allow {
+        allow if {
             input.user == "admin"
         }
         """
@@ -97,7 +97,7 @@ class TestIntegrationOpaClient(unittest.TestCase):
 
         default allow = false
 
-        allow {
+        allow if {
             input.user.role == "admin"
         }
         """
@@ -110,7 +110,7 @@ class TestIntegrationOpaClient(unittest.TestCase):
 
 		# Check permission
 		result = self.client.check_permission(input_data, policy_name, "allow")
-		self.assertIn("result", result), result
+		self.assertIn("result", result)
 		self.assertTrue(result["result"])
 
 		# Clean up
